@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Admin Panel - Secure Ballot{% endblock %}
+
+{% block content %}
+  <div class="max-w-4xl mx-auto">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-2xl font-semibold accent">Admin Panel</h2>
+
+  <div class="flex gap-3">
+    <a class="px-3 py-2 rounded bg-slate-800" href="{{ url_for('admin_logs') }}">Logs</a>
+    <a class="px-3 py-2 rounded bg-slate-800" href="{{ url_for('admin_logout') }}">Logout</a>
+  </div>
+</div>
+
+    <div class="panel rounded-2xl p-6 mb-6">
+      <h3 class="font-semibold">Vote tallies</h3>
+      <div class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3">
+        {% for row in tallies %}
+          <div class="panel rounded p-4">
+            <div class="text-sm text-slate-400">Candidate</div>
+            <div class="text-xl font-bold mt-2">{{ row['candidate'] }}</div>
+            <div class="text-2xl mt-3 accent">{{ row['cnt'] }}</div>
+          </div>
+        {% endfor %}
+      </div>
+      <div class="mt-6 text-slate-400">Total votes: <strong class="text-slate-100">{{ total }}</strong></div>
+    </div>
+    
+    <div class="panel rounded-2xl p-6 mb-6">
+  <h3 class="font-semibold mb-4 accent">Live Vote Visualization</h3>
+  <canvas id="voteChart" height="120"></canvas>
+  <div class="text-xs text-slate-500 mt-2">Chart auto-refreshes every 3 seconds.</div>
+</div>
+
+    <div class="panel rounded-2xl p-6">
+      <h3 class="font-semibold">Notes</h3>
+      <ul class="list-disc list-inside text-slate-400 mt-3">
+        <li>Votes are stored with hashed tokens and do not include CNICs — unlinkability preserved.</li>
+        <li>Used tokens are recorded to prevent double voting.</li>
+        <li>This demo uses small key sizes for speed.</li>
+      </ul>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let ctx = document.getElementById("voteChart").getContext("2d");
+let chart;
+
+async function loadData() {
+    const res = await fetch("/api/live_votes");
+    if (!res.ok) return;
+    const data = await res.json();
+
+    const labels = Object.keys(data);
+    const counts = Object.values(data);
+
+    if (!chart) {
+        chart = new Chart(ctx, {
+            type: "bar",
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: "Votes",
+                    data: counts,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                animations: { duration: 500 },
+                responsive: true,
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+    } else {
+        chart.data.labels = labels;
+        chart.data.datasets[0].data = counts;
+        chart.update();
+    }
+}
+
+// initial load
+loadData();
+// refresh every 3 sec
+setInterval(loadData, 3000);
+</script>
+
+{% endblock %}

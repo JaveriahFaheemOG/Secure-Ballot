@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Enter OTP - Secure Ballot{% endblock %}
+{% block content %}
+<div class="max-w-md mx-auto">
+  <div class="panel rounded-2xl p-6">
+    <h2 class="text-2xl font-semibold accent">Enter OTP</h2>
+    <p class="mt-1 text-slate-400">Check your email for the one-time code.</p>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="mt-3">
+          {% for cat, msg in messages %}
+            <div class="rounded p-3 mb-2 {{ 'bg-emerald-900 text-emerald-300' if cat=='success' else 'bg-red-900 text-red-300' }}">{{ msg }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+    <form method="post" class="mt-4">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <div><label class="text-sm text-slate-400">OTP</label><input name="otp" required class="w-full mt-2 p-3 bg-slate-900 rounded panel"></div>
+      <button class="px-4 py-2 rounded bg-cyan-500 text-black mt-3">Verify</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% block title %}Register - Secure Ballot{% endblock %}
+
+{% block content %}
+  <div class="max-w-3xl mx-auto">
+    <div class="panel rounded-2xl p-6">
+      <h2 class="text-2xl font-semibold accent">Voter Registration - Blind Signature</h2>
+      <p class="mt-2 text-slate-400">Enter your CNIC (the authority will check eligibility). The browser will generate a token, blind it, send the blinded value to the authority for signing, then unblind the signature locally. Save the plaintext token + signature to vote.</p>
+
+      <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm text-slate-300">CNIC (13 digits)</label>
+          <input id="cnic" maxlength="13" class="mt-2 w-full rounded-md bg-slate-900 panel p-3 outline-none border border-white/3 focus:ring-2 focus:ring-cyan-400">
+          <div class="text-xs text-slate-500 mt-2">Use a CNIC present in eligible voters (seeded in DB).</div>
+        </div>
+
+        <div>
+          <label class="block text-sm text-slate-300">Actions</label>
+          <div class="mt-2 flex gap-2">
+            <button id="generateBtn" class="px-4 py-2 rounded bg-cyan-500 text-black font-medium hover:bg-cyan-600">Generate & Blind-Sign</button>
+            <button id="clearBtn" class="px-4 py-2 rounded border border-white/5 text-slate-200">Clear</button>
+          </div>
+          <div id="status" class="mt-3 text-sm text-slate-300"></div>
+        </div>
+      </div>
+
+      <div id="result" class="mt-6 hidden panel rounded-lg p-4 border border-white/3">
+        <h4 class="font-semibold accent">Save these securely</h4>
+        <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs text-slate-400">Plain token (5-digit)</label>
+            <pre id="plainToken" class="mono p-3 bg-slate-900 rounded text-sm break-words"></pre>
+          </div>
+          <div>
+            <label class="text-xs text-slate-400">Token hash (integer)</label>
+            <pre id="tokenHash" class="mono p-3 bg-slate-900 rounded text-sm break-words"></pre>
+          </div>
+        </div>
+
+        <div class="mt-3">
+          <label class="text-xs text-slate-400">Signature (decimal)</label>
+          <pre id="signatureOut" class="mono p-3 bg-slate-900 rounded text-sm break-words"></pre>
+        </div>
+
+        <div class="mt-4 flex gap-2">
+          <button id="copyBtn" class="px-3 py-2 rounded bg-slate-800 hover:bg-slate-700">Copy</button>
+          <a class="px-3 py-2 rounded bg-cyan-500 text-black" href="{{ url_for('vote_page') }}">Go to Vote</a>
+        </div>
+
+        <div class="mt-3 text-xs text-slate-500">Keep the token and signature secret. The authority never sees the plaintext token during registration.</div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+/* ---------- cryptographic helpers (BigInt + WebCrypto) ---------- */
+
+function bufToHex(buffer) {
+  const bytes = new Uint8Array(buffer);
+  return Array.from(bytes).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+async function sha256Hex(str) {
+  const enc = new TextEncoder();
+  const buf = await crypto.subtle.digest('SHA-256', enc.encode(str));
+  return bufToHex(buf);
+}
+function hexToBigInt(hex) {
+  return BigInt('0x' + hex);
+}
+function modPow(base, exp, mod) {
+  if (mod === 1n) return 0n;
+  let result = 1n;
+  base = base % mod;
+  while (exp > 0n) {
+    if (exp & 1n) result = (result * base) % mod;
+    exp >>= 1n;
+    base = (base * base) % mod;
+  }
+  return result;
+}
+function egcd(a, b) {
+  let old_r = a, r = b;
+  let old_s = 1n, s = 0n;
+  while (r !== 0n) {
+    const q = old_r / r;
+    [old_r, r] = [r, old_r - q * r];
+    [old_s, s] = [s, old_s - q * s];
+  }
+  return {g: old_r, x: old_s};
+}
+function modInverse(a, m) {
+  const {g, x} = egcd(a < 0n ? ((a % m)+m) : a, m);
+  if (g !== 1n) throw new Error('No inverse');
+  return ((x % m) + m) % m;
+}
+function bigGcd(a,b) {
+  a = a < 0n ? -a : a; b = b < 0n ? -b : b;
+  while (b !== 0n) { [a,b] = [b, a % b]; }
+  return a;
+}
+function randomBigInt(maxExclusive) {
+  const bitlen = maxExclusive.toString(2).length;
+  const bytel = Math.ceil(bitlen/8);
+  while (true) {
+    const rnd = new Uint8Array(bytel);
+    crypto.getRandomValues(rnd);
+    let hex = Array.from(rnd).map(b=>b.toString(16).padStart(2,'0')).join('');
+    let v = BigInt('0x' + hex);
+    if (v > 1n && v < maxExclusive - 1n) return v;
+  }
+}
+
+/* ---------- UI wiring ---------- */
+
+const el = id => document.getElementById(id);
+const statusEl = el('status');
+const resultEl = el('result');
+const plainTokenEl = el('plainToken');
+const tokenHashEl = el('tokenHash');
+const signatureEl = el('signatureOut');
+
+document.getElementById('clearBtn').addEventListener('click', () => {
+  el('cnic').value = '';
+  statusEl.innerHTML = '';
+  resultEl.classList.add('hidden'); resultEl.classList.remove('block');
+  resultEl.style.display = 'none';
+});
+
+document.getElementById('generateBtn').addEventListener('click', async () => {
+  statusEl.innerHTML = '<div class="text-slate-400">Initializing...</div>';
+  const cnic = (el('cnic').value || '').trim();
+  if (!/^\d{13}$/.test(cnic)) {
+    statusEl.innerHTML = '<div class="text-red-400">Enter a valid 13-digit CNIC</div>'; return;
+  }
+
+  statusEl.innerHTML = '<div class="text-slate-400">Fetching authority public key…</div>';
+  const pubResp = await fetch('/authority_pub');
+  if (!pubResp.ok) { statusEl.innerHTML = '<div class="text-red-400">Failed to fetch authority key</div>'; return; }
+  const pub = await pubResp.json();
+  const n = BigInt(pub.n);
+  const e = BigInt(pub.e);
+
+  // 1) generate plaintext token
+  const plainToken = (Math.floor(10000 + Math.random()*90000)).toString();
+  plainTokenEl.innerText = plainToken;
+  statusEl.innerHTML = '<div class="text-slate-400">Hashing token…</div>';
+
+  // 2) compute h = SHA256(plainToken)
+  const hex = await sha256Hex(plainToken);
+  const h = hexToBigInt(hex);
+
+  // 3) generate random r invertible mod n
+  statusEl.innerHTML = '<div class="text-slate-400">Generating blinding factor...</div>';
+  let r;
+  for (let i=0;i<128;i++) {
+    r = randomBigInt(n);
+    if (bigGcd(r, n) === 1n) break;
+  }
+  if (bigGcd(r, n) !== 1n) {
+    statusEl.innerHTML = '<div class="text-red-400">Failed to generate invertible r</div>'; return;
+  }
+
+  // 4) blinded = h * r^e % n
+  const rPowE = modPow(r, e, n);
+  const blinded = (h * rPowE) % n;
+
+  statusEl.innerHTML = '<div class="text-slate-400">Sending blinded value for signing…</div>';
+  const resp = await fetch('/blind_sign', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({cnic: cnic, blinded: blinded.toString()})
+  });
+
+  if (!resp.ok) {
+    const err = await resp.json().catch(()=>({error:'server error'}));
+    statusEl.innerHTML = `<div class="text-red-400">Server refused to sign: ${err.error || 'unknown'}</div>`;
+    return;
+  }
+  const data = await resp.json();
+  const signed_blinded = BigInt(data.signed_blinded);
+
+  // 5) unblind: signature = signed_blinded * r^{-1} mod n
+  let invR;
+  try { invR = modInverse(r, n); }
+  catch (e) { statusEl.innerHTML = '<div class="text-red-400">Failed to compute inverse(r)</div>'; return; }
+  const signature = (signed_blinded * invR) % n;
+
+  tokenHashEl.innerText = h.toString();
+  signatureEl.innerText = signature.toString();
+
+  // show result
+  statusEl.innerHTML = '<div class="text-green-400">Signed! Save your token & signature securely.</div>';
+  resultEl.style.display = 'block';
+});
+
+document.getElementById('copyBtn').addEventListener('click', () => {
+  const text = `Plain token: ${plainTokenEl.innerText}\nToken-hash: ${tokenHashEl.innerText}\nSignature: ${signatureEl.innerText}`;
+  navigator.clipboard.writeText(text);
+  alert('Copied to clipboard');
+});
+</script>
+{% endblock %}

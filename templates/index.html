@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Home - Secure Ballot{% endblock %}
+{% block content %}
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="panel rounded-xl p-6 shadow-lg">
+      <div class="cyber-card">
+      <h3 class="text-xl font-semibold accent">Register (Blind Sign)</h3>
+      <p class="mt-2 text-slate-400">Prove eligibility and receive a blind-signed token without revealing the token to the authority.</p>
+      <a class="inline-block mt-4 btn-primary bg-cyan-500 hover:bg-cyan-600 px-4 py-2 rounded text-black font-medium" href="{{ url_for('register') }}">Register now</a>
+    </div>
+</div>
+    <div class="panel rounded-xl p-6 shadow-lg">
+      <div class="cyber-card">
+      <h3 class="text-xl font-semibold accent">Verify & Vote</h3>
+      <p class="mt-2 text-slate-400">Submit your token and digital signature securely to cast an unlinkable and verifiable vote.</p>
+      <a class="inline-block mt-4 btn-primary bg-cyan-500 hover:bg-cyan-600 px-4 py-2 rounded text-black font-medium" href="{{ url_for('vote_page') }}">Cast vote</a>
+    </div>
+    </div>
+
+    <div class="panel rounded-xl p-6 shadow-lg">
+      <div class="cyber-card">
+      <h3 class="text-xl font-semibold accent">Admin</h3>
+      <p class="mt-2 text-slate-400">Administrators can securely tally all votes while maintaining full voter privacy and integrity.</p>
+      <a class="inline-block mt-4 btn-primary bg-cyan-500 hover:bg-cyan-600 px-4 py-2 rounded text-black font-medium" href="{{ url_for('admin_login') }}">Admin login</a>
+    </div>
+    </div>
+  </div>
+{% endblock %}

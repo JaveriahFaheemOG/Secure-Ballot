@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Vote - Secure Ballot{% endblock %}
+
+{% block content %}
+  <div class="max-w-3xl mx-auto">
+    <div class="panel rounded-2xl p-6">
+      <h2 class="text-2xl font-semibold accent">Verify Token & Vote</h2>
+      <p class="mt-2 text-slate-400">Paste the token hash and signature you obtained during registration, then select a candidate.</p>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="mt-4">
+            {% for cat, msg in messages %}
+              <div class="rounded p-3 mb-2 {{ 'bg-emerald-900 text-emerald-300' if cat=='success' else 'bg-red-900 text-red-300' }}">{{ msg }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      <form method="post" action="{{ url_for('submit_vote') }}" class="mt-4 space-y-4">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <div>
+          <label class="text-sm text-slate-400">Token (integer — token hash)</label>
+          <textarea name="token" rows="2" required class="w-full mt-2 p-3 bg-slate-900 rounded panel mono"></textarea>
+        </div>
+        <div>
+          <label class="text-sm text-slate-400">Signature (decimal)</label>
+          <textarea name="signature" rows="3" required class="w-full mt-2 p-3 bg-slate-900 rounded panel mono"></textarea>
+        </div>
+
+        <div>
+          <label class="text-sm text-slate-400">Select Candidate</label>
+          <div class="mt-2 grid grid-cols-1 md:grid-cols-3 gap-2">
+            {% for c in candidates %}
+              <label class="p-3 panel rounded cursor-pointer hover:ring-2 hover:ring-cyan-500">
+                <input class="hidden" type="radio" name="candidate" value="{{ c }}" required>
+                <div class="font-medium">{{ c }}</div>
+                <div class="text-xs text-slate-400">Click to select</div>
+              </label>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="flex gap-2">
+          <button class="px-4 py-2 rounded bg-cyan-500 text-black">Submit Vote</button>
+          <a class="px-4 py-2 rounded border border-white/5" href="{{ url_for('register') }}">Back to register</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}

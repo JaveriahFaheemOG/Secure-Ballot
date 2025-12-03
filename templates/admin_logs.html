@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Logs — Admin{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-2xl font-semibold accent">System Logs</h2>
+    <a class="px-3 py-2 rounded bg-slate-800" href="{{ url_for('admin_panel') }}">Back</a>
+  </div>
+
+  <div class="panel rounded-2xl p-6 overflow-auto">
+    <table class="w-full text-left text-sm">
+      <thead class="border-b border-white/10">
+        <tr>
+          <th class="py-2">ID</th>
+          <th class="py-2">Event</th>
+          <th class="py-2">Info</th>
+          <th class="py-2">Time</th>
+          <th class="py-2">Severity</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+        <tr class="border-b border-white/5">
+          <td class="py-2 text-slate-400">{{ log.id }}</td>
+          <td class="py-2">{{ log.event_type }}</td>
+          <td class="py-2 text-slate-400">{{ log.info }}</td>
+          <td class="py-2 text-slate-500">{{ log.created_at }}</td>
+
+          {% if log.severity == "high" %}
+            <td class="py-2 font-bold text-red-400">HIGH</td>
+          {% elif log.severity == "medium" %}
+            <td class="py-2 font-bold text-yellow-400">MEDIUM</td>
+          {% else %}
+            <td class="py-2 font-bold text-green-400">LOW</td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

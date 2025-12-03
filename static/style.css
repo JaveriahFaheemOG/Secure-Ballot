@@ -1,0 +1,106 @@
+/* ===========================
+   GLOBAL OVERRIDES
+=========================== */
+
+/* Smooth transitions for dark/light switch */
+html {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Fix card shadows */
+.cyber-card {
+    @apply rounded-xl p-6 border border-gray-700 bg-[#0f1620] shadow-xl;
+}
+
+/* Light mode overrides */
+html.light body {
+    background-color: #f8fafc !important;
+    color: #1e293b !important;
+}
+
+html.light .cyber-card {
+    @apply bg-white border-gray-300 shadow-lg;
+}
+
+html.light nav {
+    @apply bg-white border-b border-gray-200;
+}
+
+html.light a,
+html.light p,
+html.light h1,
+html.light h2,
+html.light h3 {
+    color: #1e293b !important;
+}
+
+/* Brand highlight color */
+.cyber-blue {
+    color: #00b4ff !important;
+}
+
+.cyber-button {
+    background-color: #00b4ff !important;
+    color: #000 !important;
+    font-weight: 600;
+    padding: 8px 18px;
+    border-radius: 8px;
+    transition: 0.3s ease;
+}
+
+.cyber-button:hover {
+    background-color: #33cfff !important;
+}
+
+/* Toggle icon styling */
+#themeToggle svg {
+    width: 22px;
+    height: 22px;
+}
+
+/* Fix nav link spacing */
+.nav-link-fix {
+    @apply px-4 py-2 text-gray-300 hover:text-white transition;
+}
+
+html.light .nav-link-fix {
+    color: #475569 !important;
+}
+html.light .nav-link-fix:hover {
+    color: #000 !important;
+}
+
+/* Consistent button styling */
+.btn-main {
+    background-color: var(--cyan);
+    color: #000;
+    padding: 10px 18px;
+    font-weight: 600;
+    border-radius: 8px;
+    display: inline-block;
+    text-align: center;
+    transition: 0.25s ease;
+}
+
+.btn-main:hover {
+    background-color: #33cfff;
+}
+
+/* Secondary button (gray) */
+.btn-secondary {
+    background-color: #1e293b;
+    color: #cbd5e1;
+    padding: 10px 18px;
+    font-weight: 500;
+    border-radius: 8px;
+    display: inline-block;
+    transition: 0.25s ease;
+}
+
+.btn-secondary:hover {
+    background-color: #334155;
+}
