@@ -1,12 +1,3 @@
-![Python](https://img.shields.io/badge/Python-3.13-blue)
-![Flask](https://img.shields.io/badge/Flask-Secure_App-black)
-![Security](https://img.shields.io/badge/Security_Focus-High-critical)
-![MFA](https://img.shields.io/badge/MFA-Enabled-green)
-![Encryption](https://img.shields.io/badge/Encrypted_Votes-Yes-blue)
-![SAST](https://img.shields.io/badge/SAST-Bandit-purple)
-![Threat Modeling](https://img.shields.io/badge/Threat_Modeling-STRIDE-red)
-![License](https://img.shields.io/badge/License-MIT-green)
-
 # Secure Ballot — Secure E-Voting System (Flask)
 
 Secure Ballad is a minimal but security-focused e-voting web application built with Flask and SQLite. It implements anonymous voting via blind signatures, MFA verification, encrypted vote storage, tamper-evident logs, rate limiting, and admin-only result visualization.
@@ -93,3 +84,12 @@ http://127.0.0.1:5000
 
 Pull requests are welcome.
 Security-related improvements are encouraged.
+
+![Python](https://img.shields.io/badge/Python-3.13-blue)
+![Flask](https://img.shields.io/badge/Flask-Secure_App-black)
+![Security](https://img.shields.io/badge/Security_Focus-High-critical)
+![MFA](https://img.shields.io/badge/MFA-Enabled-green)
+![Encryption](https://img.shields.io/badge/Encrypted_Votes-Yes-blue)
+![SAST](https://img.shields.io/badge/SAST-Bandit-purple)
+![Threat Modeling](https://img.shields.io/badge/Threat_Modeling-STRIDE-red)
+![License](https://img.shields.io/badge/License-MIT-green)
