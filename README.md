@@ -1,8 +1,3 @@
-# Secure Ballot — Secure E-Voting System (Flask)
-
-Secure Ballad is a minimal but security-focused e-voting web application built with Flask and SQLite. It implements anonymous voting via blind signatures, MFA verification, encrypted vote storage, tamper-evident logs, rate limiting, and admin-only result visualization.
-
----
 ![Python](https://img.shields.io/badge/Python-3.13-blue)
 ![Flask](https://img.shields.io/badge/Flask-Secure_App-black)
 ![Security](https://img.shields.io/badge/Security_Focus-High-critical)
@@ -12,6 +7,11 @@ Secure Ballad is a minimal but security-focused e-voting web application built w
 ![Threat Modeling](https://img.shields.io/badge/Threat_Modeling-STRIDE-red)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
+# Secure Ballot — Secure E-Voting System (Flask)
+
+Secure Ballad is a minimal but security-focused e-voting web application built with Flask and SQLite. It implements anonymous voting via blind signatures, MFA verification, encrypted vote storage, tamper-evident logs, rate limiting, and admin-only result visualization.
+
+---
 ## 🚀 Features
 
 ### Core Voting Features
